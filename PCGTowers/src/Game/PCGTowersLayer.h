@@ -3,16 +3,24 @@
 #include <Dragon/Application/Layer.h>
 #include <Dragon/Application/Window/WindowEvents.h>
 
-#include <Dragon/Game/Tilemap/Tilemap.h>
+#include <Game/MapGenerator.h>
 
-struct TileData
-{
-	float noiseValue;
-};
+#include <SFML/Graphics/Font.hpp>
 
 class PCGTowersLayer final : public dragon::Layer
 {
-	dragon::DataTilemap<TileData> m_map;
+	inline static constexpr size_t m_kMapSize = 45;
+	inline static constexpr float m_kTileSize = 16.0f;
+
+	MapGenerator m_mapGenerator;
+
+	TDTilemap m_map;
+
+	dragon::Tilemap m_noiseTilemap;
+
+	dragon::Vector2f m_mousePosition;
+
+	sf::Font m_font;
 
 public:
 	PCGTowersLayer()
@@ -39,4 +47,7 @@ private:
 	void HandleKeyPressed(dragon::KeyPressed& keyEvent);
 	void HandleKeyReleased(dragon::KeyReleased& keyEvent);
 	void HandleMouseScroll(dragon::MouseScrolled& mouseScrollEvent);
+	void HandleMouseMoved(dragon::MouseMoved& mouseScrollEvent);
+
+	void Regenerate();
 };

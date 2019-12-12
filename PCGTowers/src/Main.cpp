@@ -1,5 +1,7 @@
 #include <Application/PCGTowersApp.h>
 
+//#include <vld.h>
+
 /// <summary>
 /// 
 /// Tower Defense PCG
