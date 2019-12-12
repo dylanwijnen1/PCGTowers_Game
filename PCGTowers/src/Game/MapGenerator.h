@@ -7,10 +7,8 @@
 #include <Dragon/Generic/Random/PerlinNoise.h>
 
 #include <EASTL/array.h>
-#include <EASTL/vector.h>
 
 #include <SFML/Graphics/Image.hpp>
-#include <SFML/Graphics/Vertex.hpp>
 
 class BiomeGenerator;
 
@@ -34,10 +32,12 @@ class MapGenerator
 
 	using BiomeGenerators = eastl::array<BiomeGenerator*, (size_t)BiomeType::kCount>;
 	BiomeGenerators m_generators;
-
-	eastl::vector<sf::Vertex> m_path;
 	
 public:
+
+	float m_zoom = 10.0f;
+	float m_persistance = 0.5f;
+	int m_octaves = 2;
 
 	~MapGenerator();
 
@@ -47,19 +47,10 @@ public:
 
 	void Seed(unsigned int seed);
 
-	void RenderPath(dragon::RenderTarget& target);
-
 	void SetBiomeGenerator(BiomeType type, BiomeGenerator* pGenerator);
 
 private:
 
 	BiomeType GetBiome(float temp, float precip);
-	
-	eastl::vector<size_t> CreatePath(size_t begin, size_t goal, TDTilemap& tilemap);
-	float GetDistanceToTile(size_t from, size_t to, TDTilemap& tilemap);
 
-	using Neighborhood = eastl::array<size_t, 4>;
-	void GetNeighboringTiles(size_t tileIndex, Neighborhood& neighbors, TDTilemap& tilemap);
-
-	// Generator functions.
 };

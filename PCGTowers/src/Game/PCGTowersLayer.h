@@ -4,6 +4,7 @@
 #include <Dragon/Application/Window/WindowEvents.h>
 
 #include <Game/MapGenerator.h>
+#include <Game/PathFinder.h>
 
 #include <SFML/Graphics/Font.hpp>
 
@@ -15,6 +16,7 @@ class PCGTowersLayer final : public dragon::Layer
 	MapGenerator m_mapGenerator;
 
 	TDTilemap m_map;
+	PathFinder m_pathFinder;
 
 	dragon::Tilemap m_noiseTilemap;
 
