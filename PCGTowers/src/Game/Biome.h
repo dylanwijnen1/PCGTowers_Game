@@ -12,9 +12,8 @@ enum struct BiomeType : uint32_t
 	kSeasonalForest = 0x2C89A0FF,
 	kRainForestTemperate = 0x0A546DFF,
 	kRainForestTropical = 0x075330FF,
-	kSavannah = 0x96A527FF,
+	kSavannah = 0x97A527FF,
 	kDesert = 0xC87137FF,
 
-	// Count
 	kCount = 9
 };

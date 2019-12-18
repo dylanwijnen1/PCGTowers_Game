@@ -3,24 +3,15 @@
 #include <Dragon/Application/Layer.h>
 #include <Dragon/Application/Window/WindowEvents.h>
 
-#include <Game/MapGenerator.h>
-#include <Game/PathFinder.h>
+#include <Game/TowerDefense/World.h>
 
 #include <SFML/Graphics/Font.hpp>
 
 class PCGTowersLayer final : public dragon::Layer
 {
-	inline static constexpr size_t m_kMapSize = 45;
-	inline static constexpr float m_kTileSize = 16.0f;
-
-	MapGenerator m_mapGenerator;
-
-	TDTilemap m_map;
-	PathFinder m_pathFinder;
-
-	dragon::Tilemap m_noiseTilemap;
-
 	dragon::Vector2f m_mousePosition;
+
+	World m_world;
 
 	sf::Font m_font;
 
@@ -50,6 +41,4 @@ private:
 	void HandleKeyReleased(dragon::KeyReleased& keyEvent);
 	void HandleMouseScroll(dragon::MouseScrolled& mouseScrollEvent);
 	void HandleMouseMoved(dragon::MouseMoved& mouseScrollEvent);
-
-	void Regenerate();
 };
