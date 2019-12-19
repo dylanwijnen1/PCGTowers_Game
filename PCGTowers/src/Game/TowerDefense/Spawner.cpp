@@ -45,7 +45,7 @@ void Spawner::ClearEnemyGroups()
 
 void Spawner::Update(float dt)
 {
-	// Enemy
+	// Enemy Group
 	auto& currentGroup = m_groups.front();
 
 	m_currentEnemyTime -= dt;

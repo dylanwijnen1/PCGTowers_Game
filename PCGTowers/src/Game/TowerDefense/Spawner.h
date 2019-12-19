@@ -41,7 +41,14 @@ private:
 	/// </summary>
 	float m_timeBetweenEnemiesForGroup; // Effectively SpawnRate.
 
+	/// <summary>
+	/// Time till next group starts spawning.
+	/// </summary>
 	float m_currentGroupTime;
+
+	/// <summary>
+	/// Time till next enemy spawns.
+	/// </summary>
 	float m_currentEnemyTime;
 
 	using Groups = eastl::queue<SpawnQueue>;

@@ -2,8 +2,6 @@
 
 #include <Game/TowerDefense/Enemy.h>
 
-#include <vld.h>
-
 int main()
 {
 	PCGTowersApp app;

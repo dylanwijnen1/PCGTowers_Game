@@ -43,7 +43,6 @@ void World::Reset()
 		delete m_pCurrentRound;
 	}
 
-
 	// Set current level to first level in graph.
 	//auto roundInfo = m_rounds.GetVertices().front(); // Get The first node.
 

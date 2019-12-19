@@ -11,7 +11,7 @@ void PCGTowersLayer::OnAttach()
 	m_font.loadFromFile("retro_gaming.ttf");
 
 	m_world.Init();
-	m_world.SetDifficulty(GameDifficulty::kHard);
+	m_world.SetDifficulty(GameDifficulty::kNormal);
 
 	// Generate World { 0 }
 	m_world.GenerateWorld(1576697224);
