@@ -4,6 +4,7 @@
 
 #include <Game/TowerDefense/Enemy.h>
 #include <Game/TowerDefense/World.h>
+#include <Game/Rounds/Round.h>
 
 #include <Dragon/Graphics/RenderTarget.h>
 #include <Platform/SFML/SfmlHelpers.h>
@@ -43,7 +44,7 @@ void Spawner::ClearEnemyGroups()
 	}
 }
 
-void Spawner::Update(float dt)
+void Spawner::Update(float dt, Round* pRound)
 {
 	// Enemy Group
 	auto& currentGroup = m_groups.front();
@@ -58,6 +59,10 @@ void Spawner::Update(float dt)
 		{
 			Enemy* pEnemy = currentGroup.front();
 			currentGroup.pop();
+
+			// Add Score for this spawned enemy.
+			if (pRound)
+				pRound->AddWaveScore(pEnemy->GetStats().m_damage);
 
 			pEnemy->SetPath(&m_pathToGoal); // Set the path of the enemy.
 			m_pWorld->AddEnemy(pEnemy);

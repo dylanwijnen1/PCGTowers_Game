@@ -13,9 +13,10 @@ void PCGTowersLayer::OnAttach()
 	m_world.Init();
 	m_world.SetDifficulty(GameDifficulty::kNormal);
 
-	// Generate World { 0 }
-	m_world.GenerateWorld(1576697224);
-	//m_world.GenerateWorld(1576698459);
+	m_world.GenerateWorld();
+
+	// Interesting Worlds
+
 }
 
 void PCGTowersLayer::OnDetach()
@@ -69,31 +70,10 @@ void PCGTowersLayer::Render(dragon::RenderTarget& target)
 
 void PCGTowersLayer::OnEvent(dragon::ApplicationEvent& ev)
 {
-	ev.Dispatch<dragon::KeyPressed>(this, &PCGTowersLayer::HandleKeyPressed);
-	ev.Dispatch<dragon::KeyReleased>(this, &PCGTowersLayer::HandleKeyReleased);
-	ev.Dispatch<dragon::MouseScrolled>(this, &PCGTowersLayer::HandleMouseScroll);
-	ev.Dispatch<dragon::MouseMoved>(this, &PCGTowersLayer::HandleMouseMoved);
+	m_world.OnEvent(ev);
 }
 
-void PCGTowersLayer::HandleKeyPressed(dragon::KeyPressed& keyEvent)
-{
-	m_world.GenerateWorld();
-
-	//dragon::Vector2 mouseTilePos = tilemap.WorldToMapCoordinates(m_mousePosition);
-	//size_t mouseTileIndex = tilemap.IndexFromPosition(mouseTilePos.x, mouseTilePos.y);
-}
-
-void PCGTowersLayer::HandleKeyReleased(dragon::KeyReleased& keyEvent)
-{
-
-}
-
-void PCGTowersLayer::HandleMouseScroll(dragon::MouseScrolled& mouseScrollEvent)
-{
-
-}
-
-void PCGTowersLayer::HandleMouseMoved(dragon::MouseMoved& mouseMoveEvent)
-{
-	m_mousePosition = mouseMoveEvent.m_position;
-}
+//void PCGTowersLayer::HandleKeyPressed(dragon::KeyPressed& keyEvent)
+//{
+//	m_world.GenerateWorld(m_random.Random<unsigned int>());
+//}

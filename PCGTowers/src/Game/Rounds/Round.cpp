@@ -42,7 +42,6 @@ void Round::NextWave()
 void Round::EndRound()
 {
 	Pause();
-	//onRoundFinished(true, m_roundScore);
 }
 
 bool Round::HasFinished() const
@@ -52,10 +51,8 @@ bool Round::HasFinished() const
 
 void Round::Update(float dt)
 {
-	/// Note:
-	/// The following will allow the NextWave() function to only trigger once.
-	/// This will prevent the round for calling NextWave() continiously after completing all waves.
-	if (m_waveTimer > 0.0f)
+
+	if (!m_isPaused && m_currentWave < g_kWavesPerRound)
 	{
 		m_waveTimer -= dt;
 		if (m_waveTimer < 0.0f)
@@ -71,7 +68,7 @@ void Round::Update(float dt)
 	// Update Spawners
 	for (Spawner& pSpawner : m_spawners)
 	{
-		pSpawner.Update(dt);
+		pSpawner.Update(dt, this);
 	}
 }
 

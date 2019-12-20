@@ -1,36 +1,35 @@
 #pragma once
 
-#include <EASTL/vector.h>
-
-#include <Game/Generators/TurretGenerator.h>
 #include <Game/Generators/WaveGenerator.h>
 #include <Game/Generators/MapGenerator.h>
-#include <Game/Generators/RoundsGenerator.h>
+
+#include <Game/Rounds/Round.h>
 
 #include <Game/GameDifficulty.h>
+
+#include <EASTL/vector.h>
+#include <EASTL/array.h>
+#include <EASTL/unordered_map.h>
+
+#include <SFML/Graphics/Font.hpp>
+#include <SFML/Graphics/Text.hpp>
 
 namespace dragon
 {
 	class RenderTarget;
+	class ApplicationEvent;
+
+	class MouseButtonPressed;
+	class MouseButtonReleased;
+	class MouseMoved;
+	class KeyReleased;
 }
 
 class World
 {
-
-
 	//
 	// Generators
 	//
-
-	/// <summary>
-	/// Generates the world rounds for the player to play through.
-	/// </summary>
-	//RoundsGenerator m_roundsGenerator;
-
-	/// <summary>
-	/// Generates turrets for the player and during the game.
-	/// </summary>
-	TurretGenerator m_turretGenerator;
 
 	/// <summary>
 	/// The map generator of the world.
@@ -46,27 +45,23 @@ class World
 	// Game State
 	TDTilemap m_tilemap;
 
-#if _DEBUG
-
-	TDTilemap m_noiseTilemap; // Only used in debugging.
-
-#endif
-
 	/// <summary>
-	/// World Generator.
+	/// World Random, Seeded by GenerateWorld and Init
 	/// </summary>
 	dragon::Random m_random;
 
-	struct Player
-	{
-		float m_gold;
-		// eastl::array<Turret*, 5> m_inventory; // Max 5 in the inventory.
+	/// <summary>
+	/// Player Gold.
+	/// </summary>
+	float m_playerGold;
 
-		Player()
-			: m_gold(0.0f)
-		{}
+	/// <summary>
+	/// Total Score
+	/// </summary>
+	float m_score;
 
-	} m_player; 
+	using Turrets = eastl::unordered_map<size_t, class Turret*>;
+	Turrets m_turrets;
 
 	/// <summary>
 	/// Turrets that are currently on the game board.
@@ -75,7 +70,6 @@ class World
 
 	GameDifficulty m_difficulty;
 
-	//dragon::Handle m_currentRoundHandle;
 	class Round* m_pCurrentRound;
 
 	using Enemies = eastl::vector<class Enemy*>;
@@ -90,8 +84,43 @@ class World
 	/// </summary>
 	Enemies m_enemiesToAdd;
 
-	// Events:
-	// Event<void(Round*)> OnNextRoundSelected;
+	//
+	// User Interaction
+	//
+
+	class Turret* m_pMovingTurret;
+	dragon::Vector2f m_lastMousePosition;
+
+	//
+	// User Interface
+	//
+
+	sf::Font m_font;
+
+	/// <summary>
+	/// Displays turret information.
+	/// </summary>
+	sf::Text m_turretInfoText;
+
+	/// <summary>
+	/// Displays round information : Wave Time, Wave Score
+	/// </summary>
+	sf::Text m_roundText;
+
+	/// <summary>
+	/// Displays Game Info : Total Score, Player Gold
+	/// </summary>
+	sf::Text m_gameText;
+
+	/// <summary>
+	/// Displays Games Key Binding Information and in debug it also shows information about tiles.
+	/// </summary>
+	sf::Text m_infoText;
+
+	/// <summary>
+	/// Displays the text whilst paused.
+	/// </summary>
+	sf::Text m_pauseText;
 
 public:
 
@@ -99,7 +128,8 @@ public:
 		: m_difficulty(GameDifficulty::kNormal)
 		, m_pCurrentRound(nullptr)
 		, m_pDefaultWaveGenerator(nullptr)
-		, m_player()
+		, m_pMovingTurret(nullptr)
+		, m_playerGold(0.0f)
 	{}
 
 	~World();
@@ -107,7 +137,7 @@ public:
 	/// <summary>
 	/// Initialize the world
 	/// </summary>
-	void Init();
+	bool Init();
 
 	/// <summary>
 	/// Reset the world to start from the beginning.
@@ -115,10 +145,16 @@ public:
 	void Reset();
 
 	/// <summary>
+	/// Generates the Game World with a randomized seed.
+	/// Also resets the game world.
+	/// </summary>
+	void GenerateWorld();
+
+	/// <summary>
 	/// Generates the Game World based on seed and difficulty.
 	/// Also resets the game world.
 	/// </summary>
-	void GenerateWorld(unsigned int seed = (unsigned int)time(0));
+	void GenerateWorld(unsigned int seed);
 
 	/// <summary>
 	/// Sets the world's difficulty level.
@@ -138,8 +174,7 @@ public:
 	/// <param name="pGenerator"></param>
 	void SetDefaultWaveGenerator(WaveGenerator* pGenerator) { m_pDefaultWaveGenerator = pGenerator; }
 
-	// OnEvent(ApplicationEvent& event);
-	// ChooseNextRound(dragon::Handle); // Fires OnNextRoundSelected.
+	void OnEvent(dragon::ApplicationEvent& ev);
 
 	/// <summary>
 	/// Renders the State of the World to the screen.
@@ -151,7 +186,39 @@ public:
 
 private:
 
-	void GenerateRound(const RoundInfo& roundInfo);
+	void GenerateRound(const Round::RoundData& roundData);
+
+	bool IsTurretPlaceable(class Turret* pTurret);
+	bool TryPlaceTurret(size_t tileIndex, class Turret* pTurret);
+
+	void BuyTurret(size_t index);
+	void SellTurret(size_t index);
+	void UpgradeTurret(size_t index);
+	Turret* GenerateTurret();
+
+	void UpdateEnemies(float dt);
+	void UpdateTurrets(float dt);
+
+	void DrawEnemies(dragon::RenderTarget& target);
+	void DrawTurretsAndCursor(dragon::RenderTarget& target);
+	void DrawTurretInformation(dragon::RenderTarget& target, class Turret* pTurret);
+
+	void DrawPlacementSquare(dragon::RenderTarget& target, dragon::Vector2 tilePos, dragon::Color color) const;
+
+	void InitializeUserInterface();
+	void UpdateInfoText();
+	void UpdateGameText();
+	void UpdateRoundText();
+	void DrawUserInterface(dragon::RenderTarget& target);
+
+#pragma region User Interactions
+
+	void HandleMousePress(dragon::MouseButtonPressed& ev);
+	void HandleMouseRelease(dragon::MouseButtonReleased& ev);
+	void HandleMouseMove(dragon::MouseMoved& ev);
+	void HandleKeyRelease(dragon::KeyReleased& ev);
+
+#pragma endregion
 
 #pragma region Round Utilities
 
@@ -160,13 +227,12 @@ private:
 	/// <summary>
 	/// Generates the next round.
 	/// </summary>
-	void NextRound(size_t option);
+	void NextRound();
 
 	/// <summary>
-	/// Tell the round to start spawning waves of enemies.
+	/// Tell the round to start spawning waves of enemies or to stop.
 	/// </summary>
-	void StartRound();
-	void PauseRound();
+	void TogglePauseRound();
 
 	/// <summary>
 	/// Gets rid of all enemies in the world or were yet to be added.
@@ -174,6 +240,7 @@ private:
 	void ClearEnemies();
 
 public:
+
 	/// <summary>
 	/// Adds an enemy to the world.
 	/// </summary>
@@ -181,6 +248,5 @@ public:
 	void AddEnemy(class Enemy* pEnemy) { m_enemiesToAdd.emplace_back(pEnemy); }
 
 #pragma endregion
-
 
 };

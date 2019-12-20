@@ -62,7 +62,7 @@ void MapGenerator::Generate(TDTilemap& tilemap, unsigned int seed)
 
 		float temperatureVal = std::sin(temp * 3.14f) * temp;
 		float precipitationVal = std::sin(precip * 3.14f / 2.0f);
-		return precipitationVal * 1.5 * temperatureVal;
+		return precipitationVal * 1.5f * temperatureVal;
 	};
 
 	float biomeDensity = calculateBiomeDensity(m_temperature, m_precipitation);
@@ -72,21 +72,27 @@ void MapGenerator::Generate(TDTilemap& tilemap, unsigned int seed)
 	{
 		for (unsigned int y = 0; y < size.y; ++y)
 		{
+			auto& tileData = tilemap.GetTileData(x, y);
+			tileData.m_isTurretPlaceable = true; // Reset Placeable status.
+
 			// Height Noise [0.0f, 1.0f]
 			float noise = m_perlinNoise.AverageNoise((float)x / (float)size.x, (float)y / (float)size.y, m_zoom, m_octaves, m_persistance, seed);
 
 			// Temperature Noise
 			float tileTemperature = m_perlinNoise.AverageNoise((float)x / (float)size.x, (float)y / (float)size.y, m_zoom * 2.0f, 1, 0.5f, seed);
 			tileTemperature *= m_temperature;
+			tileData.m_temperature = tileTemperature;
 
 			// Precipitation Noise
 			float tileMoisture = m_perlinNoise.AverageNoise((float)x / (float)size.x, (float)y / (float)size.y, 4.0f, 4, 0.4f, seed);
 			float tilePrecipitation = tileMoisture;
 			tilePrecipitation *= m_precipitation;
+			tileData.m_moistureLevel = tilePrecipitation;
 
 			if (m_random.RandomUniform() < biomeDensity * noise)
 			{
 				tilemap.SetTile(x, y, GetBiomeTile(biome, MapTile::kDense));
+				tileData.m_isTurretPlaceable = false;
 			}
 			else
 			{
@@ -94,7 +100,10 @@ void MapGenerator::Generate(TDTilemap& tilemap, unsigned int seed)
 				if (totalMoisture > .3f && totalMoisture < .5f)
 					tilemap.SetTile(x, y, GetBiomeTile(biome, MapTile::kMoist));
 				else if (totalMoisture > .7f)
+				{
 					tilemap.SetTile(x, y, GetBiomeTile(biome, MapTile::kVeryMoist));
+					tileData.m_isTurretPlaceable = false;
+				}
 				else
 					tilemap.SetTile(x, y, GetBiomeTile(biome, MapTile::kPlain));
 			}
@@ -104,7 +113,7 @@ void MapGenerator::Generate(TDTilemap& tilemap, unsigned int seed)
 			noise = dragon::math::SmootherStep(noise);
 			noise = dragon::math::SmootherStep(noise);
 
-			tilemap.GetTileData(x, y).m_noise = noise;
+			tileData.m_noise = noise;
 		}
 	}
 
@@ -186,8 +195,8 @@ void MapGenerator::FindEnemySpawnerLocations(const TDTilemap& tilemap, dragon::V
 		dragon::Vector2 direction = position - dragon::Vector2((int)x, (int)y);
 		int distance = std::abs(direction.Length());
 		
-		float distanceValue = dragon::math::Max(0, distance - g_kMinDistanceOfSpawner);
-		distanceValue /= g_kMapSize - g_kMinDistanceOfSpawner;
+		float distanceValue = (float)dragon::math::Max(0, distance - g_kMinDistanceOfSpawner);
+		distanceValue /= (float)((int)g_kMapSize - g_kMinDistanceOfSpawner);
 
 		return dragon::math::Sin(distanceValue * 2.3f);
 	};
@@ -223,6 +232,8 @@ Path MapGenerator::CarvePath(TDTilemap& tilemap, dragon::Vector2 from, dragon::V
 
 	for (int tileIndex : tilePath)
 	{
+		tilemap.GetTileDataAtIndex(tileIndex).m_isTurretPlaceable = false;
+
 		dragon::TileID tilePathId = GetPathTile(biome, tilemap.GetTileAtIndex(tileIndex));
 		tilemap.SetTileAtIndex(tileIndex, tilePathId);
 
@@ -412,6 +423,9 @@ void MapGenerator::GrowRiversIteration(TDTilemap& tilemap)
 	const dragon::Vector2u kMapSize = tilemap.GetSize();
 	const size_t kTileCount = (size_t)kMapSize.x * (size_t)kMapSize.y;
 
+	BiomeType biome = GetBiomeType(m_temperature, m_precipitation);
+	dragon::TileID riverTile = GetBiomeTile(biome, MapTile::kVeryMoist);
+
 	// Spawn threads
 	std::thread* pThreads = new std::thread[kThreadCount];
 
@@ -425,12 +439,12 @@ void MapGenerator::GrowRiversIteration(TDTilemap& tilemap)
 
 	for (size_t i = 0; i < kThreadCount - 1; ++i)
 	{
-		pThreads[i] = std::thread(&MapGenerator::ApplyGrowRiversRule, this, std::cref(tilemap), startIndex, endIndex, pNewState);
+		pThreads[i] = std::thread(&MapGenerator::ApplyGrowRiversRule, this, std::cref(tilemap), riverTile, startIndex, endIndex, pNewState);
 
 		startIndex += stride;
 		endIndex += stride;
 	}
-	ApplyGrowRiversRule(tilemap, startIndex, kTileCount, pNewState);
+	ApplyGrowRiversRule(tilemap, riverTile, startIndex, kTileCount, pNewState);
 
 	// Wait for threads to finish.
 	for (size_t i = 0; i < kThreadCount - 1; ++i)
@@ -443,6 +457,13 @@ void MapGenerator::GrowRiversIteration(TDTilemap& tilemap)
 	for (size_t i = 0; i < kTileCount; ++i)
 	{
 		tilemap.SetTileAtIndex(i, pNewState[i]);
+		
+		// Recheck if the tile is now unplaceable.
+		if (pNewState[i] == riverTile)
+		{
+			// Can no longer place turrets at this tile.
+			tilemap.GetTileDataAtIndex(i).m_isTurretPlaceable = false;
+		}
 	}
 
 	// Cleanup
@@ -450,11 +471,11 @@ void MapGenerator::GrowRiversIteration(TDTilemap& tilemap)
 	delete[] pNewState;
 }
 
-void MapGenerator::ApplyGrowRiversRule(const dragon::Tilemap& tilemap, size_t start, size_t end, dragon::TileID* pNewState)
+void MapGenerator::ApplyGrowRiversRule(const dragon::Tilemap& tilemap, dragon::TileID riverTile, size_t start, size_t end, dragon::TileID* pNewState)
 {
 	auto mooreNeighborhood = [&tilemap](size_t index, dragon::TileID id) -> size_t
 	{
-		dragon::Vector2 pos = tilemap.PositionFromIndex(index);
+		dragon::Vector2 pos = tilemap.PositionFromIndex((int)index);
 
 		size_t count = 0;
 		if (tilemap.GetTile(pos.x - 1, pos.y - 1) == id) ++count;
@@ -469,9 +490,6 @@ void MapGenerator::ApplyGrowRiversRule(const dragon::Tilemap& tilemap, size_t st
 		if (tilemap.GetTile(pos.x + 1, pos.y + 1) == id) ++count;
 		return count;
 	};
-
-	BiomeType biome = GetBiomeType(m_temperature, m_precipitation);
-	dragon::TileID riverTile = GetBiomeTile(biome, MapTile::kVeryMoist);
 
 	for (size_t i = start; i < end; ++i)
 	{
@@ -496,5 +514,5 @@ dragon::TileID MapGenerator::GetBiomeTile(BiomeType biomeType, MapTile tile)
 		theme = it->second.themeIndex;
 	}
 
-	return ((size_t)MapTile::kCount * theme) + (size_t)tile;
+	return (dragon::TileID)((size_t)MapTile::kCount * theme) + (size_t)tile;
 }

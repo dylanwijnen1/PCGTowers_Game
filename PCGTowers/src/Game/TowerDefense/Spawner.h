@@ -83,7 +83,7 @@ public:
 
 	void EmplacePath(Path&& path) { m_pathToGoal = eastl::move(path); }
 
-	void Update(float dt);
+	void Update(float dt, class Round* pRound);
 
 	void Render(dragon::RenderTarget& target);
 };

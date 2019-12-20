@@ -20,8 +20,15 @@ class Round
 public:
 	
 	/// <summary>
-	/// Node used in RoundGraph holds the information for a round until ready to be used to create the actual map.
+	/// Information to generate a round for the round.
+	/// 
 	/// </summary>
+	/// <notes>
+	/// DYLAN:	The idea was to pull this from some graph/tree where the child nodes would generate close matches to its parents (colder or hotter, more / less rain) slowly changing the biome.
+	///			This would become some kind of strategy to where the player could keep going to warmer climates and have turrets that get "bonuses" from those climates.
+	/// 
+	///			Besides biome changing, I wanted to add special rounds for example a "Gold" round that would have a special wave generator to spawn lots of enemies with low health.
+	/// </notes>
 	struct RoundData
 	{
 		//
@@ -86,8 +93,10 @@ private:
 	// Events
 	//
 
+	// TODO: World attaches to event to be notified when the round has finished and generate the next.
 	// using RoundFinishedEvent = Event<void(bool, score)>;
-	// RoundFinishedEvent onRoundFinished; // TODO: World attaches to event to be notified when the round has finished and generate the next.
+	// RoundFinishedEvent onRoundFinished; 
+	
 
 public:
 
@@ -123,6 +132,12 @@ public:
 	/// Resumes the round.
 	/// </summary>
 	void Resume() { m_isPaused = false; }
+
+	/// <summary>
+	/// Wether or not the round is paused.
+	/// </summary>
+	/// <returns></returns>
+	bool IsPaused() const { return m_isPaused; }
 	
 	/// <summary>
 	/// Ends the round
@@ -130,6 +145,12 @@ public:
 	void EndRound(); 
 
 	bool HasFinished() const;
+
+	float GetRoundScore() const { return m_roundScore; }
+
+	float GetWaveTime() const { return m_waveTimer; }
+	float GetWaveScore() const { return m_waveScore; }
+	void AddWaveScore(float add) { m_waveScore += add; }
 
 	void SetBaseHealth(float health) { m_base.m_health = health; }
 

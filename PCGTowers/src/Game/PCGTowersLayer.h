@@ -1,16 +1,16 @@
 #pragma once
 
-#include <Dragon/Application/Layer.h>
-#include <Dragon/Application/Window/WindowEvents.h>
-
 #include <Game/TowerDefense/World.h>
+
+#include <Dragon/Application/Layer.h>
+#include <Dragon/Application/ApplicationEvent.h>
+
+#include <Dragon/Generic/Random.h>
 
 #include <SFML/Graphics/Font.hpp>
 
 class PCGTowersLayer final : public dragon::Layer
 {
-	dragon::Vector2f m_mousePosition;
-
 	World m_world;
 
 	sf::Font m_font;
@@ -35,10 +35,4 @@ public:
 	virtual void Render(dragon::RenderTarget& target) final override;
 
 	virtual void OnEvent(dragon::ApplicationEvent& ev) final override;
-
-private:
-	void HandleKeyPressed(dragon::KeyPressed& keyEvent);
-	void HandleKeyReleased(dragon::KeyReleased& keyEvent);
-	void HandleMouseScroll(dragon::MouseScrolled& mouseScrollEvent);
-	void HandleMouseMoved(dragon::MouseMoved& mouseScrollEvent);
 };

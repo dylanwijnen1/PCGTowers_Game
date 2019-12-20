@@ -1,21 +1,45 @@
 #pragma once
 
 // TODO: Probably not the best to be in Config.
+//		 Also wasn't the best placement for Range I will be moving this in my engine in the future.
 #include <Dragon/Generic/Random/Range.h>
 
 // Globals
-constexpr float g_kTileSize = 16.0f;
-constexpr size_t g_kMapSize = 45;
 
-constexpr float g_kMinTemperature = -10.0f;
-constexpr float g_kMaxTemperature = 30.0f;
-constexpr float g_kMinPrecipitation = 0.0f;
-constexpr float g_kMaxPrecipitation = 400.0f;
+static constexpr float g_kTextSize = 21.0f;
 
-constexpr size_t g_kWavesPerRound = 5;
+static constexpr float g_kTileSize = 16.0f;
+static constexpr size_t g_kMapSize = 45;
 
-constexpr int g_kMaxTries = 25;
-constexpr int g_kMinDistanceOfSpawner = 16;
+static constexpr float g_kMinTemperature = -10.0f;
+static constexpr float g_kMaxTemperature = 30.0f;
+static constexpr float g_kMinPrecipitation = 0.0f;
+static constexpr float g_kMaxPrecipitation = 400.0f;
+
+static constexpr size_t g_kWavesPerRound = 5;
+
+static constexpr int g_kMaxTries = 25;
+static constexpr int g_kMinDistanceOfSpawner = 16;
+
+/// <summary>
+/// Cost of buying a new turret.
+/// </summary>
+static constexpr float g_kTurretCost = 80.0f;
+
+/// <summary>
+/// Get **% back of the turret cost
+/// </summary>
+static constexpr float g_kTurretReturnValue = 0.6f; 
+
+/// <summary>
+/// Cost of an upgrade
+/// </summary>
+static constexpr float g_kTurretUpgradeCost = 20.0f;
+
+/// <summary>
+/// upgradeCost = upgradeLevel * g_kTurretUpgradeCost * multiplier;
+/// </summary>
+static constexpr float g_kTurretUpgradeCostMultiplier = 1.2f;
 
 //
 // Difficulty Settings

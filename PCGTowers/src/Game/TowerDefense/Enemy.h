@@ -84,6 +84,7 @@ public:
 
 	void SetHealth(float health) { m_health = health; }
 	float GetHealth() const { return m_health; }
+	void Damage(float damage) { m_health -= damage; }
 
 	void SetShape(Shape shape) { m_shape = shape; }
 	Shape GetShape() const { return m_shape; }

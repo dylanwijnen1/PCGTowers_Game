@@ -35,7 +35,7 @@ void Enemy::Update(float dt)
 
 	m_position += directionNormalized * m_stats.m_speed * dt;
 
-	if (std::abs(direction.LengthSquared()) < 1.f) // TODO: Replace small amount with something more defined.
+	if (std::abs(direction.LengthSquared()) < 1.f)
 		++m_nextTile;
 }
 
@@ -43,6 +43,8 @@ void Enemy::Render(dragon::RenderTarget& target)
 {
 	sf::RenderTarget* pSfTarget = target.GetNativeTarget<sf::RenderTarget*>();
 
+	// DYLAN:	Really ugly way of drawing, Creating/Deleting memory.
+	//			If I had some extra time I would do this upon setting shape.
 	sf::Shape* pShape = nullptr;
 
 	switch (m_shape)
@@ -60,10 +62,22 @@ void Enemy::Render(dragon::RenderTarget& target)
 
 	if (pShape)
 	{
-		pShape->setPosition(sf::Convert(m_position - (g_kTileSize / 2.0f)));
+		pShape->setPosition(sf::Convert(m_position - g_kTileSize / 2.0f));
 		pShape->setFillColor(sf::Convert(m_color));
 		pSfTarget->draw(*pShape);
 		delete pShape;
 	}
 	
+	// Draw Healthbar on top of enemy. Right above the enemy
+
+	static constexpr float kHealthbarHeight = g_kTileSize / 8.0f;
+	const float kHealthbarWidth = g_kTileSize  * (m_health / 100.0f);
+	
+	sf::RectangleShape healthbar(sf::Vector2f(kHealthbarWidth, kHealthbarHeight));
+	healthbar.setOrigin(kHealthbarWidth / 2.0f, kHealthbarHeight / 2.0f);
+	healthbar.setFillColor(sf::Color::Red);
+
+	healthbar.setPosition(sf::Convert(m_position - dragon::Vector2f(0.0f, g_kTileSize / 1.5f)));
+
+	pSfTarget->draw(healthbar);
 }

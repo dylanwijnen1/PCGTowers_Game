@@ -130,5 +130,5 @@ protected:
 
 	void GrowRivers(TDTilemap& tilemap);
 	void GrowRiversIteration(TDTilemap& tilemap);
-	void ApplyGrowRiversRule(const dragon::Tilemap& map, size_t start, size_t end, dragon::TileID* pNewState);
+	void ApplyGrowRiversRule(const dragon::Tilemap& map, dragon::TileID riverTile, size_t start, size_t end, dragon::TileID* pNewState);
 };
